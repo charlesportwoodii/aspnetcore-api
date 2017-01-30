@@ -11,7 +11,6 @@ using Microsoft.Extensions.Caching.Redis;
 
 namespace ASPNetCoreAPI
 {
-    using ASPNetCoreAPI.Models;
     using ASPNetCoreAPI.DataContext;
 
     public class Startup
