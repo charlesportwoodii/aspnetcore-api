@@ -21,10 +21,11 @@
     "Microsoft.Extensions.Logging.Console": "1.1.0",
     "Microsoft.Extensions.Logging.Debug": "1.1.0",
     "Microsoft.Extensions.Options.ConfigurationExtensions": "1.1.0",
-    "Isopoh.Cryptography.Argon2": "1.0.0",
+    "BCrypt.Net-Core": "1.1.0",
     "Microsoft.EntityFrameworkCore": "1.1.0",
     "Microsoft.EntityFrameworkCore.SQlite": "1.1.0",
-    "Microsoft.EntityFrameworkCore.Design": "1.1.0"
+    "Microsoft.EntityFrameworkCore.Design": "1.1.0",
+    "Microsoft.Extensions.Caching.Redis": "1.1.0"
   },
 
   "tools": {

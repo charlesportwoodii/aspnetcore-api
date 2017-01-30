@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ASPNetCoreAPI.Models
 {
+    using BCrypt.Net;
     public class User
     {
         [Key]
@@ -23,5 +24,10 @@ namespace ASPNetCoreAPI.Models
         [Required]
         [DataType(DataType.Date)]
         public DateTime updated_at { get; set; }
+
+        public bool ValidatePassword(string password)
+        {
+            return BCrypt.Verify(password, this.password);
+        }
     }
 }

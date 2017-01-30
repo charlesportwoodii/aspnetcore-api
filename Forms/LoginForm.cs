@@ -1,5 +1,11 @@
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
+using Microsoft.Extensions.Caching.Distributed;
+using Newtonsoft.Json;
+using Microsoft.Extensions.Logging;
 
 namespace ASPNetCoreAPI.Forms
 {
@@ -22,13 +28,25 @@ namespace ASPNetCoreAPI.Forms
         [StringLength(6)]
         public string otp { get; set; }
 
-        public bool login()
+        private Token token { get; set; }
+
+        public bool Login(IDistributedCache cache)
         {
             if (this.GetUser() == null) {
                 return false;
             }
-            
-            return true;
+
+            if (this.user.ValidatePassword(this.password)) {
+                this.token = new Token(cache);
+                return true;
+            }
+
+            return false;
+        }
+
+        public Token GetToken()
+        {
+            return this.token;
         }
         
         private User GetUser()

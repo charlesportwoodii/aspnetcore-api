@@ -5,19 +5,25 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Caching.Distributed;
+using Newtonsoft.Json;
 
 namespace ASPNetCoreAPI.Controllers
 {
     using ASPNetCoreAPI.DataContext;
     using ASPNetCoreAPI.Forms;
+    using ASPNetCoreAPI.Models;
+    using BCrypt.Net;
 
     public class UserController : Controller
     {
         private readonly ILogger _logger;
+        private readonly IDistributedCache _cache;
 
-        public UserController(ILogger<UserController> logger)
+        public UserController(ILogger<UserController> logger, IDistributedCache cache)
         {
             this._logger = logger;
+            this._cache = cache;
         }
 
         [HttpPost]
@@ -25,12 +31,12 @@ namespace ASPNetCoreAPI.Controllers
         {
             if (ModelState.IsValid)
             {
-                if (form.login()) {
+                if (form.Login(_cache)) {     
                     return new JsonResult(new {
-                        ikm = 1,
-                        salt = 2,
-                        access_token = 3,
-                        refresh_token = 4
+                        ikm = form.GetToken().ikm,
+                        salt = form.GetToken().salt,
+                        access_token = form.GetToken().access_token,
+                        refresh_token = form.GetToken().refresh_token
                     });
                 }
                 
