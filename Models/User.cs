@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace ASPNetCoreAPI.Models
+namespace App.Models
 {
     using BCrypt.Net;
     public class User

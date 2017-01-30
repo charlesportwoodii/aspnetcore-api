@@ -7,10 +7,10 @@ using Microsoft.Extensions.Caching.Distributed;
 using Newtonsoft.Json;
 using Microsoft.Extensions.Logging;
 
-namespace ASPNetCoreAPI.Forms
+namespace App.Forms
 {
-    using ASPNetCoreAPI.DataContext;
-    using ASPNetCoreAPI.Models;
+    using App.DataContext;
+    using App.Models;
 
     public class LoginForm
     {

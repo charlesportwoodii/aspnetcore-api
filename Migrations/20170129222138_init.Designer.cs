@@ -3,9 +3,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
-using ASPNetCoreAPI.DataContext;
+using App.DataContext;
 
-namespace aspnetcoreapi.Migrations
+namespace App.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
     [Migration("20170129222138_init")]
@@ -16,12 +16,10 @@ namespace aspnetcoreapi.Migrations
             modelBuilder
                 .HasAnnotation("ProductVersion", "1.1.0-rtm-22752");
 
-            modelBuilder.Entity("ASPNetCoreAPI.Models.User", b =>
+            modelBuilder.Entity("App.Models.User", b =>
                 {
                     b.Property<int>("id")
                         .ValueGeneratedOnAdd();
-
-                    b.Property<DateTime>("created_at");
 
                     b.Property<string>("email")
                         .IsRequired();
@@ -30,6 +28,8 @@ namespace aspnetcoreapi.Migrations
                         .IsRequired();
 
                     b.Property<DateTime>("updated_at");
+
+                    b.Property<DateTime>("created_at");
 
                     b.HasKey("id");
 

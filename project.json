@@ -68,6 +68,6 @@
   },
 
   "tooling": {
-    "defaultNamespace": "ASPNetCoreAPI"
+    "defaultNamespace": "App"
   }
 }

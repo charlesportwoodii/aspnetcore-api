@@ -8,11 +8,11 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Caching.Distributed;
 using Newtonsoft.Json;
 
-namespace ASPNetCoreAPI.Controllers
+namespace App.Controllers
 {
-    using ASPNetCoreAPI.DataContext;
-    using ASPNetCoreAPI.Forms;
-    using ASPNetCoreAPI.Models;
+    using App.DataContext;
+    using App.Forms;
+    using App.Models;
     using BCrypt.Net;
 
     public class UserController : Controller

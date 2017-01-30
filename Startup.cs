@@ -9,9 +9,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Caching.Redis;
 
-namespace ASPNetCoreAPI
+namespace App
 {
-    using ASPNetCoreAPI.DataContext;
+    using App.DataContext;
 
     public class Startup
     {

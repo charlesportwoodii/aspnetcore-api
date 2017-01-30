@@ -1,9 +1,10 @@
-namespace ASPNetCoreAPI.DataContext
+using System;
+using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
+
+namespace App.DataContext
 {
-    using Microsoft.EntityFrameworkCore;
-    using ASPNetCoreAPI.Models;
-    using System;
-    using System.Collections.Generic;
+    using App.Models;
     
     public class DatabaseContext : DbContext
     {
