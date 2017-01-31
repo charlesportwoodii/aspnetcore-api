@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using App.DataContext;
 
-namespace App.Migrations
+namespace aspnetcoreapi.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
     partial class DatabaseContextModelSnapshot : ModelSnapshot
@@ -23,13 +23,19 @@ namespace App.Migrations
                     b.Property<string>("email")
                         .IsRequired();
 
+                    b.Property<string>("opt_enabled");
+
+                    b.Property<string>("opt_secret");
+
                     b.Property<string>("password")
                         .IsRequired();
 
                     b.Property<DateTime>("updated_at");
-
-                    b.Property<DateTime>("created_at");
                     
+                    b.Property<DateTime>("created_at");
+
+                    b.Property<int>("verified");
+
                     b.HasKey("id");
 
                     b.HasIndex("email")

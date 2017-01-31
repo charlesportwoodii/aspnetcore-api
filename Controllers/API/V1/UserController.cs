@@ -6,14 +6,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Caching.Distributed;
-using Newtonsoft.Json;
 
 namespace App.Controllers
 {
-    using App.DataContext;
     using App.Forms;
-    using App.Models;
-    using BCrypt.Net;
 
     public class UserController : Controller
     {

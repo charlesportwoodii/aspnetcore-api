@@ -17,6 +17,12 @@ namespace App.Models
         [Required]
         public string password { get; set; }
 
+        public int verified { get; set; } = 0;
+
+        public string opt_secret { get; set; }
+
+        public string opt_enabled { get; set; }
+
         [Required]
         [DataType(DataType.Date)]
         public DateTime created_at { get; set; }

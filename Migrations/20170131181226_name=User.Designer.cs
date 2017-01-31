@@ -5,11 +5,11 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using App.DataContext;
 
-namespace App.Migrations
+namespace aspnetcoreapi.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20170129222138_init")]
-    partial class init
+    [Migration("20170131181226_name=User")]
+    partial class nameUser
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -24,12 +24,18 @@ namespace App.Migrations
                     b.Property<string>("email")
                         .IsRequired();
 
+                    b.Property<string>("opt_enabled");
+
+                    b.Property<string>("opt_secret");
+
                     b.Property<string>("password")
                         .IsRequired();
 
                     b.Property<DateTime>("updated_at");
-
+                    
                     b.Property<DateTime>("created_at");
+
+                    b.Property<int>("verified");
 
                     b.HasKey("id");
 
