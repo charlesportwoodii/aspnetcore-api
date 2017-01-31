@@ -17,6 +17,7 @@ namespace App.Models
         public string salt { get; set; }
         public string access_token { get; set; }
         public string refresh_token { get; set; }
+        public long expires_at { get; set; }
 
         [JsonConstructor]
         private Token() {}
@@ -38,6 +39,7 @@ namespace App.Models
                 this.salt = token.salt;
                 this.access_token = token.access_token;
                 this.refresh_token = token.refresh_token;
+                this.expires_at = token.expires_at;
                 
             } catch (Exception e) {}
         }
@@ -60,9 +62,17 @@ namespace App.Models
             this.salt = Convert.ToBase64String(salt);
             this.access_token = rgx.Replace(Convert.ToBase64String(access_token), "");
             this.refresh_token = rgx.Replace(Convert.ToBase64String(refresh_token), "");
+
+            // Set a 15 minute timeout
+            this.expires_at = DateTimeOffset.Now.ToUnixTimeSeconds() + 900;
             
             // Cache the data into redis
             this._cache.SetString("access_token:" + this.access_token, JsonConvert.SerializeObject(this));   
+        }
+
+        public bool IsExpired()
+        {
+            return this.expires_at < DateTimeOffset.Now.ToUnixTimeSeconds();
         }
     }
 }

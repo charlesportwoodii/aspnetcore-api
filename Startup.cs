@@ -7,11 +7,12 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Caching.Redis;
+using Microsoft.Extensions.Caching.Distributed;
 
 namespace App
 {
     using App.DataContext;
+    using App.Middleware.HMACSignatureAuth;
 
     public class Startup
     {
@@ -42,13 +43,21 @@ namespace App
                 options.Configuration = Configuration.GetSection("redis:Configuration").Value;
                 options.InstanceName = Configuration.GetSection("redis:InstanceName").Value;
             });
+
+            services.AddAuthentication();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, IDistributedCache cache)
         {
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
+
+            HMACSignatureAuthOptions options = new HMACSignatureAuthOptions {
+                cache = cache
+            };
+            app.UseHMACSignatureAuthentication(options);
+
             app.UseMvc(routes =>
             {
                 routes.MapRoute(
@@ -56,13 +65,6 @@ namespace App
                     template: "api/v1/{controller}/{action}/{id?}"
                 );
             });
-        }
-
-        public static class ApplicationLogging
-        {
-            public static ILoggerFactory LoggerFactory {get;} = new LoggerFactory();
-            public static ILogger CreateLogger<T>() =>
-                LoggerFactory.CreateLogger<T>();
         }
     }
 }
