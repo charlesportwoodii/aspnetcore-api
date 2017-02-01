@@ -8,10 +8,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace App
 {
     using App.DataContext;
+    using App.Models;
     using App.Middleware.HMACSignatureAuth;
 
     public class Startup
@@ -43,8 +45,11 @@ namespace App
                 options.Configuration = Configuration.GetSection("redis:Configuration").Value;
                 options.InstanceName = Configuration.GetSection("redis:InstanceName").Value;
             });
-
-            services.AddAuthentication();
+            
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("access_token", policy => policy.RequireClaim("access_token"));
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -53,10 +58,9 @@ namespace App
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
 
-            HMACSignatureAuthOptions options = new HMACSignatureAuthOptions {
+            app.UseHMACSignatureAuthentication(new HMACSignatureAuthOptions {
                 cache = cache
-            };
-            app.UseHMACSignatureAuthentication(options);
+            });
 
             app.UseMvc(routes =>
             {

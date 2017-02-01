@@ -6,7 +6,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Caching.Distributed;
-using System.Security.Cryptography;
+using System.Security.Claims;
+using System.IO;
+using Newtonsoft.Json;
 
 namespace App.Controllers
 {
@@ -33,7 +35,8 @@ namespace App.Controllers
                         ikm = form.GetToken().ikm,
                         salt = form.GetToken().salt,
                         access_token = form.GetToken().access_token,
-                        refresh_token = form.GetToken().refresh_token
+                        refresh_token = form.GetToken().refresh_token,
+                        expires_at = form.GetToken().expires_at
                     });
                 }
                 
@@ -62,24 +65,41 @@ namespace App.Controllers
             return new BadRequestResult();
         }
 
-        //[HttpPost, Authorize]
+        [HttpPost, Authorize]
         public IActionResult refresh()
         {
-            var ikm = Convert.FromBase64String("jdD1MhZVrymbmrgsFjjZZ1K9UCMbwYV7iqSReUap84g=");
-            var salt = Convert.FromBase64String("s70zjOMenuCxIBeba5ya82yryWsiYMuQUtpEZOz5he4=");
-            var info = Convert.FromBase64String("SE1BQ3xBdXRoZW50aWNhdGlvbktleQ==");
-            var expected = Convert.FromBase64String("i4CxlCDCojxZHILXS6HIaL3wlTAiclTxo5W/0kKCFPY=");
-            int l = 32;
+            // Pull the claims information
+            var access_token = User.FindFirst("access_token").Value;
+            var user_id = User.FindFirst("user_id").Value;
 
-            var result = new App.HKDF(HashAlgorithmName.SHA256, ikm, info, l, salt);
+            // Fetch the token data
+            var token = new App.Models.Token(this._cache, access_token);
 
-            return new JsonResult(new {
-                expected = expected,
-                actual = result
-            });
-            return new JsonResult(new {
-                success = true
-            });
+            // Get the raw body
+            string body = new System.IO.StreamReader(HttpContext.Request.Body).ReadToEnd();
+            byte[] requestData = System.Text.Encoding.UTF8.GetBytes(body);
+            HttpContext.Request.Body = new System.IO.MemoryStream(requestData);
+            var requestBody = JsonConvert.DeserializeObject<IDictionary<string, string>>(body);
+
+            // Make sure the data matches
+            if (requestBody["refresh_token"] == token.refresh_token) {
+                // Create a new token
+                var newT = new App.Models.Token(this._cache, int.Parse(user_id));
+
+                // Delete the only token
+                token.Delete();
+
+                // Return the refreshed data
+                return new JsonResult(new {
+                    ikm = token.ikm,
+                    salt = token.salt,
+                    access_token = token.access_token,
+                    refresh_token = token.refresh_token,
+                    expires_at = token.expires_at
+                });
+            }
+
+            return new UnauthorizedResult();
         }
     }
 }

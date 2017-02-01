@@ -35,7 +35,7 @@ namespace App.Forms
             }
 
             if (this.user.ValidatePassword(this.password)) {
-                this.token = new Token(cache);
+                this.token = new Token(cache, this.user.id);
                 return true;
             }
 

@@ -1,24 +1,17 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Authentication;
 using Microsoft.AspNetCore.Http.Features.Authentication;
-using Microsoft.Extensions.Logging;
-using Microsoft.Net.Http.Headers;
 using System.Text.RegularExpressions;
-using Microsoft.Extensions.Caching.Distributed;
-using Newtonsoft.Json;
 using System.Security.Cryptography;
 
 namespace App.Middleware.HMACSignatureAuth
 {
     using App.Models;
+    using App.DataContext;
 
     internal class HMACSignatureAuthHandler : AuthenticationHandler<HMACSignatureAuthOptions>
     {
@@ -28,8 +21,6 @@ namespace App.Middleware.HMACSignatureAuth
             string authHeader = Request.Headers[Options.AUTHORIZATION_HEADER];
             string dateHeader = Request.Headers[Options.DATE_HEADER];
             try {
-                AuthenticateResult result = null;
-
                 if (authHeader == null) {
                     return AuthenticateResult.Fail("Authorization header is missing");
                 }
@@ -53,47 +44,41 @@ namespace App.Middleware.HMACSignatureAuth
                 // Retrieve the token object
                 Token token = new Token(Options.cache, accessToken);
 
-                if (token.access_token == null /* || token.IsExpired() */) {
+                if (token.access_token == null || token.IsExpired()) {
                     return AuthenticateResult.Fail("Invalid access token");
                 }
 
-                var body = Context.Request.Body;
-                string inputBody;
-                using (var reader = new System.IO.StreamReader(Context.Request.Body, System.Text.Encoding.UTF8)) {
-                    inputBody = reader.ReadToEnd();
-                }
+                string body = new System.IO.StreamReader(Context.Request.Body).ReadToEnd();
+                byte[] requestData = System.Text.Encoding.UTF8.GetBytes(body);
+                Context.Request.Body = new System.IO.MemoryStream(requestData);
 
                 if (!this.IsHMACSignatureValid(
                     token.access_token,
                     Convert.FromBase64String(token.ikm),
                     salt,
-                    inputBody,
+                    body,
                     hmac
                 )) {
                     return AuthenticateResult.Fail("Invalid Signature");
                 }
 
-                result = AuthenticateResult.Skip();
+                var claims = new List<Claim>(2);
+                claims.Add(new Claim("access_token", accessToken));
+                claims.Add(new Claim("user_id", token.user_id.ToString()));
 
-                return result;
-            } catch (Exception e) {
+                ClaimsPrincipal principal = new ClaimsPrincipal(
+                    new ClaimsIdentity(
+                        claims,
+                        Options.AuthenticationScheme
+                    )
+                );
+
+                var ticket = new AuthenticationTicket(principal, new AuthenticationProperties(), Options.AuthenticationScheme);
+                return AuthenticateResult.Success(ticket);
+
+            } catch (Exception) {
                 return AuthenticateResult.Fail("An error occured when validating your request");
             }
-            /*
-            
-            var claims = new List<Claim>(1);
-            claims.Add(new Claim(ClaimTypes.Name, "User"));
-
-            ClaimsPrincipal principal = new ClaimsPrincipal(
-                new ClaimsIdentity(
-                    claims, 
-                    HMACSignatureAuthDefaults.AuthenticationScheme
-                )
-            );
-
-            var ticket = new AuthenticationTicket(principal, new AuthenticationProperties(), Options.AuthenticationScheme);
-            return AuthenticateResult.Success(ticket);
-            */
         }
 
         private bool IsHMACSignatureValid(string access_token, byte[] ikm, byte[] salt, string request, byte[] hmac)
@@ -113,9 +98,9 @@ namespace App.Middleware.HMACSignatureAuth
 
                 var drift = this.GetTimeDrift(Context.Request.Headers[Options.DATE_HEADER]);
                 
-                //if (drift >= Options.DRIFT_TIME_ALLOWANCE) {
-                //    return false;
-                //}
+                if (drift >= Options.DRIFT_TIME_ALLOWANCE) {
+                    return false;
+                }
 
                 var sha256 = SHA256.Create();
                 var hash = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(request));
@@ -129,16 +114,28 @@ namespace App.Middleware.HMACSignatureAuth
                     selfHMAC.Key = kdf.hash;
                 var selfHMACValue = selfHMAC.ComputeHash(System.Text.Encoding.UTF8.GetBytes(signatureString));
                 
-                var actual = Convert.ToBase64String(selfHMACValue);
-                var expected = Convert.ToBase64String(hmac);
-                if (expected == actual) {
-                    return true;
-                }
+                // We should do a constant time comparison of the two HMAC values
+                return this.HMACCompareConstantTime(hmac, selfHMACValue);
 
             } catch (Exception) {
                 return false;
             }
+
             return false;
+        }
+
+        private bool HMACCompareConstantTime(byte[] a, byte[] b)
+        {
+            if (a.Length != b.Length) {
+                return false;
+            }
+
+            int diff = 0;
+            for (int i = 0; i < a.Length; i++) {
+                diff = a[i] ^ b[i];
+            }
+
+            return diff == 0;
         }
 
         private int GetTimeDrift(string header)
